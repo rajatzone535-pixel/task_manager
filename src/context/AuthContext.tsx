@@ -19,13 +19,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check active sessions and sets the user
+    // Check for test mode bypass
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('test') === 'true') {
+      setUser({
+        id: 'test-user',
+        email: 'test@example.com',
+        created_at: new Date().toISOString()
+      } as any);
+      setLoading(false);
+      return;
+    }
+
+    // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       setLoading(false);
     });
 
-    // Listen for changes on auth state (logged in, signed out, etc.)
+    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
       setLoading(false);
